@@ -1,0 +1,59 @@
+# ----------------
+# Logs
+# ----------------
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ----------------
+# Node.js (client + server)
+# ----------------
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# ----------------
+# Python (Flask AI microservice)
+# ----------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+*.egg
+*.whl
+.venv/
+venv/
+ENV/
+
+# ----------------
+# Environment files
+# ----------------
+.env
+client/.env
+server/.env
+server/src/ai_tfidf/.env
+
+# ----------------
+# Build outputs
+# ----------------
+build/
+.cache/
+
+# ----------------
+# IDE & OS files
+# ----------------
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
