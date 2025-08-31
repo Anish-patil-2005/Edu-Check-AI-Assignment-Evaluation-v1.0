@@ -1,7 +1,9 @@
+# Upgrade build tools first
+pip --upgrade pip setuptools wheel
 
 Flask==2.3.2
 scikit-learn==1.5.2
-sentence-transformers==2.2.2
 numpy==1.24.3
-torch>=1.13.0
+torch==2.2.0+cpu         # Use CPU prebuilt wheel to avoid build errors
 transformers>=4.30.0
+sentence-transformers==2.2.2
