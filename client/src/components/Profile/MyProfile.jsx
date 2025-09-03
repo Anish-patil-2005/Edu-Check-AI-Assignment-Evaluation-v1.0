@@ -23,7 +23,7 @@ const MyProfile = () => {
         <div className="flex flex-col items-center">
           <img
             className="w-28 h-28 rounded-full border-4 border-blue-500 shadow-md"
-            src="https://flowbite.com/docs/images/people/profile-picture-5.jpg"
+            src="../../../public/8847419.png"
             alt="User Avatar"
           />
           <h1 className="mt-4 text-2xl font-bold text-gray-900 dark:text-white">
