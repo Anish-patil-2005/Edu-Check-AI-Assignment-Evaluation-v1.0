@@ -15,22 +15,23 @@ export const createAssignment = async (req, res) => {
 
     const teacherId = req.user.id;
 
-    if (req.file) {
-
-      // Pass both path and mimeType
-      sampleAssignmentText = await extractText(req.file.path, req.file.mimetype);
-      console.log("📝 Extracted text length:", sampleAssignmentText.length);
-    }
-
-    const assignment = new Assignment({
+    const assignmentData = {
       teacherId,
       title,
       description,
-      sampleAssignmentText,
       similarityThreshold,
       dueDate,
-    });
+    };
 
+    if (req.file) {
+      sampleAssignmentText = await extractText(req.file.path, req.file.mimetype);
+      // ✅ Conditionally add file properties
+      assignmentData.sampleAssignmentText = sampleAssignmentText;
+      assignmentData.sampleFilePath = req.file.path;
+      assignmentData.sampleFileOriginalName = req.file.originalname;
+    }
+
+    const assignment = new Assignment(assignmentData);
     await assignment.save();
 
     res.status(201).json({
@@ -113,5 +114,23 @@ export const totalSubmissions = async (req, res, next) => {
   } catch (err) {
     console.error("Error fetching total submissions:", err);
     next(err);
+  }
+};
+
+
+export const downloadAssignmentSampleFile = async (req, res, next) => {
+  try {
+    const { assignmentId } = req.params;
+    const assignment = await Assignment.findById(assignmentId).lean();
+
+    if (!assignment || !assignment.sampleFilePath) {
+      return res.status(404).json({ error: "Sample file not found" });
+    }
+    
+    // Serve the file for download
+    res.download(assignment.sampleFilePath, assignment.sampleFileOriginalName);
+
+  } catch (error) {
+    next(error);
   }
 };

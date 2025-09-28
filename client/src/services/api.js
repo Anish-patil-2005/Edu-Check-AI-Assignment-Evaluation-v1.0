@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API = axios.create({
+export const API = axios.create({
     baseURL: "http://localhost:8080/api", // your backend base URL
 });
 
@@ -63,6 +63,8 @@ export const listStudentsSubmissions = async (assignmentId) => {
 };
 
 
+
+
 export const getTotalAssignments = async () => {
   const res = await API.get("/assignments"); // fetch all assignments of this teacher
   return res.data.length;
@@ -110,5 +112,30 @@ export const submitAssignment = async ({ assignmentId, file }) => {
   });
 
   return res.data;
+};
+
+
+export const downloadAssignmentFile = async (assignmentId) => {
+  const response = await API.get(
+    `/assignments/${assignmentId}/sample-file`,
+    {
+      // We tell the server we expect a file in return
+      responseType: 'blob',
+    }
+  );
+  // This returns the raw file data
+  return response.data;
+};
+
+
+export const downloadStudentSubmission = async (submissionId) => {
+  const response = await API.get(
+    `/submissions/${submissionId}/file`,
+    {
+      // We tell the server we expect a file in return
+      responseType: 'blob',
+    }
+  );
+  return response.data; // This returns the raw file data
 };
 

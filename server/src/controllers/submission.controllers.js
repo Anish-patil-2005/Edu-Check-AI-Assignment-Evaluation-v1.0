@@ -6,7 +6,7 @@ import { extractText } from '../sevices/textExtract.service.js'
 
 import { checkWith } from '../sevices/aiClient.service.js'
 
-import { gradeFromPeerSimilarity } from '../sevices/grader.service.js'
+import { gradeFromTeacherSimilarity } from '../sevices/grader.service.js'
 
 import {z} from 'zod';
 
@@ -98,7 +98,7 @@ export const uploadSubmission = async (req, res, next) => {
     const { grade, marks } =
       aiResult.grade && aiResult.marks
         ? { grade: aiResult.grade, marks: aiResult.marks }
-        : gradeFromPeerSimilarity(peer);
+        : gradeFromTeacherSimilarity(teacherSim);
 
     const saved = await Submission.create({
       studentId,
@@ -188,6 +188,27 @@ export const totalSubmissions = async (req, res, next) => {
 
   } catch (error) {
     console.error("Error in totalSubmissions:", error);
+    next(error);
+  }
+};
+
+export const downloadSubmissionFile = async (req, res, next) => {
+  try {
+    const { submissionId } = req.params;
+    
+    // You could add extra authorization here to ensure the teacher
+    // is allowed to see this submission.
+    
+    const submission = await Submission.findById(submissionId).lean();
+
+    if (!submission || !submission.storedPath) {
+      return res.status(404).json({ error: "File not found" });
+    }
+    
+    // Securely send the file for download
+    res.download(submission.storedPath, submission.originalFilename);
+
+  } catch (error) {
     next(error);
   }
 };

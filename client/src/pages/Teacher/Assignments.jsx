@@ -1,9 +1,39 @@
 import React, { useEffect, useState } from "react";
-import { listAssignments } from "../../services/api";
+import { listAssignments , downloadAssignmentFile} from "../../services/api";
+import { toast } from "react-hot-toast"; // For user-friendly error messages
 
 const Assignments = () => {
   const [assignments, setAssignments] = useState([]);
   const [loading, setLoading] = useState(true);
+
+
+  // This function handles the secure file download
+  const handleDownload = async (assignmentId, filename) => {
+    try {
+      toast.loading("Downloading file...");
+      
+      // 1. Call the service to get the file data (blob)
+      const blob = await downloadAssignmentFile(assignmentId);
+
+      // 2. The component handles the browser-specific part: triggering the download
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      toast.dismiss();
+      toast.success("Download started!");
+
+    } catch (error) {
+      toast.dismiss();
+      console.error("Error downloading file:", error);
+      toast.error("Failed to download file.");
+    }
+  };
 
   useEffect(() => {
     const fetchAssignments = async () => {
@@ -63,17 +93,15 @@ const Assignments = () => {
 
                   <td className="p-3">{assignment.description}</td>
                   <td className="p-3">
-                    {assignment.sampleFile ? (
-                      <a
-                        href={assignment.sampleFile}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline font-medium"
+                    {assignment.sampleFilePath  ? (
+                        <button
+                        onClick={() => handleDownload(assignment._id, assignment.sampleFileOriginalName)}
+                        className="text-blue-600 hover:underline font-medium cursor-pointer"
                       >
                         View / Download
-                      </a>
+                      </button>
                     ) : (
-                      <span className="text-gray-400 italic">No file</span>
+                        <span className="text-gray-400 italic">No file</span>
                     )}
                   </td>
                 </tr>

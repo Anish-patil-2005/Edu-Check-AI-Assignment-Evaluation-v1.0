@@ -1,6 +1,6 @@
 import express from "express";
 import multer from "multer";
-import { uploadSubmission, listStudentSubmissions, totalSubmissions, listAssignmentsForStudents } from "../controllers/submission.controllers.js";
+import { uploadSubmission, listStudentSubmissions, totalSubmissions, listAssignmentsForStudents ,downloadSubmissionFile} from "../controllers/submission.controllers.js";
 import { isAuth, isStudent, isTeacher } from "../middleware/auth.middlewares.js";
 
 const upload = multer({ dest: "uploads/" }); // store uploads in /uploads
@@ -36,6 +36,12 @@ router.get(
   totalSubmissions
 );
 
+router.get(
+  "/:submissionId/file",
+  isAuth,
+  isTeacher,
+  downloadSubmissionFile
+);
 
 
 export default router;

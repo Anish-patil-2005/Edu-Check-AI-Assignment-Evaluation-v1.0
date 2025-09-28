@@ -1,11 +1,42 @@
 import React, { useEffect, useState } from "react";
-import { listAssignments, listStudentsSubmissions } from "../../services/api";
+import {
+  listAssignments,
+  listStudentsSubmissions,
+  downloadStudentSubmission,
+} from "../../services/api";
+import { toast } from "react-hot-toast";
 
 const AssignmentSubmissionsToggle = () => {
   const [assignments, setAssignments] = useState([]);
   const [submissions, setSubmissions] = useState({});
   const [expanded, setExpanded] = useState({}); // track which assignment's table is shown
   const [loading, setLoading] = useState(true);
+
+  const handleSubmissionDownload = async (submissionId, filename) => {
+    try {
+      toast.loading("Downloading submission...");
+
+      // 1. Call the service to get the file data (blob)
+      const blob = await downloadStudentSubmission(submissionId);
+
+      // 2. Trigger the download in the browser
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", filename);
+      document.body.appendChild(link);
+      link.click();
+
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      toast.dismiss();
+      toast.success("Download started!");
+    } catch (error) {
+      toast.dismiss();
+      console.error("Error downloading file:", error);
+      toast.error("Failed to download file.");
+    }
+  };
 
   useEffect(() => {
     const fetchAssignments = async () => {
@@ -23,12 +54,12 @@ const AssignmentSubmissionsToggle = () => {
 
   // Toggle table visibility & fetch submissions if not fetched yet
   const toggleSubmissions = async (assignmentId) => {
-    setExpanded(prev => ({ ...prev, [assignmentId]: !prev[assignmentId] }));
+    setExpanded((prev) => ({ ...prev, [assignmentId]: !prev[assignmentId] }));
 
     if (!submissions[assignmentId]) {
       try {
         const data = await listStudentsSubmissions(assignmentId);
-        setSubmissions(prev => ({ ...prev, [assignmentId]: data }));
+        setSubmissions((prev) => ({ ...prev, [assignmentId]: data }));
       } catch (err) {
         console.error(err);
       }
@@ -41,11 +72,13 @@ const AssignmentSubmissionsToggle = () => {
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">Assignments & Submissions</h1>
 
-      {assignments.map((a,index) => (
+      {assignments.map((a, index) => (
         <div key={a._id} className="mb-6 border rounded-lg shadow-md bg-white">
           {/* Assignment header with toggle button */}
           <div className="flex justify-between items-center p-4 bg-blue-100 hover:bg-blue-200 cursor-pointer">
-            <span className="font-semibold">{`A${index + 1}`} | {a.title}</span>
+            <span className="font-semibold">
+              {`A${index + 1}`} | {a.title}
+            </span>
             <button
               className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
               onClick={() => toggleSubmissions(a._id)}
@@ -72,20 +105,43 @@ const AssignmentSubmissionsToggle = () => {
                 </thead>
                 <tbody>
                   {submissions[a._id] && submissions[a._id].length > 0 ? (
-                    submissions[a._id].map(s => (
+                    submissions[a._id].map((s) => (
                       <tr key={s._id} className="border-b">
-                        <td className="p-2">{s.studentId._id || s.studentId}</td>
+                        <td className="p-2">
+                          {s.studentId._id || s.studentId}
+                        </td>
                         <td className="p-2">{s.studentId.name || s.name}</td>
                         <td className="p-2">{s.peerSimilarity}%</td>
                         <td className="p-2">{s.teacherSimilarity}%</td>
                         <td className="p-2">{s.grade}</td>
                         <td className="p-2">{s.marks}</td>
-                        <td className={`p-2 font-semibold ${s.status === "accepted" ? "text-green-600" : "text-red-600"}`}>{s.status}</td>
+                        <td
+                          className={`p-2 font-semibold ${
+                            s.status === "accepted"
+                              ? "text-green-600"
+                              : "text-red-600"
+                          }`}
+                        >
+                          {s.status}
+                        </td>
                         <td className="p-2">
-                          {s.file ? (
-                            <a href={s.file} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">View / Download</a>
+                          {s.storedPath ? (
+                            // ✅ This is the corrected button
+                            <button
+                              onClick={() =>
+                                handleSubmissionDownload(
+                                  s._id,
+                                  s.originalFilename
+                                )
+                              }
+                              className="text-blue-600 hover:underline"
+                            >
+                              View / Download
+                            </button>
                           ) : (
-                            <span className="text-gray-400 italic">No file</span>
+                            <span className="text-gray-400 italic">
+                              No file
+                            </span>
                           )}
                         </td>
                       </tr>
@@ -93,7 +149,9 @@ const AssignmentSubmissionsToggle = () => {
                   ) : (
                     <tr>
                       <td colSpan="8" className="text-center p-4 text-gray-500">
-                        {submissions[a._id] ? "No submissions yet" : "Loading submissions..."}
+                        {submissions[a._id]
+                          ? "No submissions yet"
+                          : "Loading submissions..."}
                       </td>
                     </tr>
                   )}
